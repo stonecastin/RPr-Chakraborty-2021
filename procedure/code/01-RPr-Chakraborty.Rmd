@@ -57,7 +57,7 @@ Other software are not specified in the publication; however data files and comm
 ```{r setup, message = FALSE, include = FALSE}
 # list of required packages
 # we could probably be listing them all here, making the previous block redundant.
-packages = c("tidycensus", "tidyverse", "downloader", "haven", "stars", "dplyr", "sf", "rdhs", "classInt", "readr", "ggplot2", "here", "s2", "pastecs", "tmap", "vtable", "SpatialEpi", "svDialogs", "geepack")
+packages = c("tidycensus", "tidyverse", "downloader", "haven", "dplyr", "sf", "classInt", "readr", "ggplot2", "here", "s2", "pastecs", "tmap", "SpatialEpi", "svDialogs", "geepack")
 
 # load and install required packages
 package.check <- lapply(
@@ -263,6 +263,9 @@ acs_covid_stats <- acs_covid %>%
 
 acs_covid_stats
 ```
+p > 0.005 = not a normal distribution, p = how sig. the ShapiroWilk test is
+ShapiroWilk being a test of normality, gives a # that then needs to be assessed for sig.
+
 
 ## Calculate Pearson's R Correlation Coefficients
 
@@ -290,6 +293,7 @@ pearsons_r
 # this estimation of t gives similar, but not identical, result to corr.test
 # consider trying the rstatix package for this!
 ```
+r = -1 to 1, same as below 1= perf pos corralation, -1= perf negative, 0 = no correlation, P = sig. 
 
 ## Calculate Spearman's Rho Correlation Coefficients
 
@@ -317,6 +321,7 @@ spearmans_rho <- acs_covid %>%
 
 spearmans_rho
 ```
+P = sig. rho = -1 to 1, -1= perf neg correlation, 1= perf pos correlation, 0 = no correlation
 
 ## Kulldorf Spatial Scan Cluster Detection
 
@@ -455,6 +460,7 @@ gee_data <- left_join(acs_covid, covid_clusters, by = c("geoid"="fips")) %>%
 
 rm(covid_clusters)
 ```
+mutate gives the state # x 10 (so 2 digits are state id) + class as the third digit
 
 ## Save preprocessed GEE data inputs
 
@@ -472,7 +478,7 @@ Optionally, you may load the preprocessed data from `data/raw/public/gee_data.gp
 gee_data <- read_sf(here("data","derived","public","gee_data.gpkg"))
 ```
 
-# Report numer of unique clusters
+# Report number of unique clusters
 
 ```{r}
 cluster_summary <- gee_data %>% 
@@ -481,6 +487,7 @@ cluster_summary <- gee_data %>%
 cat(length(cluster_summary$n), "unique clusters\n")
 summary(cluster_summary$n)
 ```
+number of unique clusters = # of obs in cluster_summary, max = one cluster w 184 counties, mean = on average each cluster has 22 counties in it
 
 ## GEE Models
 
@@ -578,4 +585,8 @@ QIC_results <- data.frame(race = QIC(race_gee),
 QIC_results
 
 ```
+estimate = + more likely to have covid, - = less likely to have covid, std.err = standard error, estimate is the slope, low = not a huge impact, wald = chi squared its a stats test, pr = prob. want to be at 0 bc we're trying to reject the null hypothesis, accepted if p > 0.05
 
+intercept = baseline covid rate, slope = how much it matters
+
+cluster has rel risk score for each cluster, orig. did risk score for center of the cluster applied to the whole cluster, could still be better by avg the risk score or taking the highest risk score in the cluster, 
